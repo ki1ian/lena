@@ -24,7 +24,7 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 
 
 # ====================================
-#              EVENTS
+#            BASE EVENTS
 # ====================================
 
 # Sanity check, ensure bot is connected to Discord
@@ -72,6 +72,27 @@ async def removetask(ctx, task_number: int): # type hint, ensure number given is
         return
     removed = tasks.pop(task_number - 1)
     await ctx.send(f"Task removed: {removed}")
+
+
+# ====================================
+#            ERROR HANDLING
+# ====================================
+
+# Catch errors from any command and reply with a helpful message
+@bot.event
+async def on_command_error(ctx, error):
+    if isinstance(error, commands.MissingRequiredArgument):
+        await ctx.send(f"Missing required argument. Usage: `!{ctx.command} {ctx.command.signature}`")
+    elif isinstance(error, commands.BadArgument):
+        await ctx.send(f"Invalid argument. Usage: `!{ctx.command} {ctx.command.signature}`")
+    elif isinstance(error, commands.CommandNotFound):
+        pass # Ignore unrecognized commands to avoid spamming channel with error messages
+    else:
+        await ctx.send("An unexpected error occurred. Please try again later.")
+        # Log error to terminal for debugging
+        print(f"Unhandled error: {error}")
+        raise error 
+    
 
 # Run bot with token
 bot.run(TOKEN)
