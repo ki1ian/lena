@@ -22,6 +22,7 @@ intents.message_content = True
 # Create bot instance with command prefix and intents
 bot = commands.Bot(command_prefix="!", intents=intents)
 
+
 # ====================================
 #              EVENTS
 # ====================================
@@ -30,6 +31,7 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 @bot.event
 async def on_ready():
     print(f"{bot.user.name} has connected to Discord!")
+
 
 # ====================================
 #              COMMANDS
