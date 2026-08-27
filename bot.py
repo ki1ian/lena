@@ -1,12 +1,14 @@
 # Note: for command names to be typed by users, snake_case is avoided for convenience.
 # Command names are instead written in lowercase with no spaces, e.g. !addtask, !listtasks, etc.
 
+
 # ====================================
 #               SETUP
 # ====================================
 
 import os
 import discord
+import database
 
 from discord.ext import commands
 from dotenv import load_dotenv
@@ -21,6 +23,9 @@ intents.message_content = True
 
 # Create bot instance with command prefix and intents
 bot = commands.Bot(command_prefix="!", intents=intents)
+
+# Initialize database
+database.init_db()
 
 
 # ====================================
@@ -42,35 +47,33 @@ async def on_ready():
 async def ping(ctx):
     await ctx.send("Pong!")
 
-# Temporary in-memory task storage for testing (resets when Lena restarts)
-tasks = []
-
 # Append new tasks (capture all text into 1 argument using *)
 # Usage: !addtask <task_text>
 @bot.command()
 async def addtask(ctx, *, task_text):
-    tasks.append(task_text)
+    database.add_task(task_text)
     await ctx.send(f"Task added: {task_text}")
 
 # Display all tasks currently stored
 # Usage: !listtasks
 @bot.command()
 async def listtasks(ctx):
+    tasks = database.get_tasks()
     if not tasks:
         await ctx.send("No tasks exist.")
         return
     # Loop through tasks, number them, combine into 1 message -> send to Discord
-    task_lines = [f"{i + 1}. {task}" for i, task in enumerate(tasks)]
+    task_lines = [f"{i + 1}. {text}" for i, (task_id, text) in enumerate(tasks)]
     await ctx.send("Tasks:\n" + "\n".join(task_lines))
 
 # Remove a task from the list by its number (1-indexed)
 # Usage: !removetask <task_number>
 @bot.command()
 async def removetask(ctx, task_number: int): # type hint, ensure number given is an int
-    if task_number < 1 or task_number > len(tasks):
-        await ctx.send("Invalid task number (out of range). Use !listtasks to see valid numbers.")
+    removed = database.remove_task_by_position(task_number)
+    if removed is None:
+        await ctx.send(f"Invalid task number: {task_number}. Use !listtasks to see valid task numbers.")
         return
-    removed = tasks.pop(task_number - 1)
     await ctx.send(f"Task removed: {removed}")
 
 
