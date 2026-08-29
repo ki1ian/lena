@@ -47,12 +47,14 @@ async def on_ready():
 async def ping(ctx):
     await ctx.send("Pong!")
 
+
 # Append new tasks (capture all text into 1 argument using *)
 # Usage: !addtask <task_text>
 @bot.command()
 async def addtask(ctx, *, task_text):
     database.add_task(task_text)
     await ctx.send(f"Task added: {task_text}")
+
 
 # Display all tasks currently stored
 # Usage: !listtasks
@@ -65,6 +67,7 @@ async def listtasks(ctx):
     # Loop through tasks, number them, combine into 1 message -> send to Discord
     task_lines = [f"{i + 1}. {text}" for i, (task_id, text) in enumerate(tasks)]
     await ctx.send("Tasks:\n" + "\n".join(task_lines))
+
 
 # Remove a task from the list by its number (1-indexed)
 # Usage: !removetask <task_number>

@@ -14,7 +14,8 @@ def init_db():
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS tasks (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            task_text TEXT NOT NULL
+            task_text TEXT NOT NULL,
+            due_date TEXT
         )
     """)
     # SQLite "save" step, changes only persist through sessions if committed
@@ -24,10 +25,10 @@ def init_db():
 
 
 # Add a new task to the database
-def add_task(task_text):
+def add_task(task_text, due_date=None):
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
-    cursor.execute("INSERT INTO tasks (task_text) VALUES (?)", (task_text,))
+    cursor.execute("INSERT INTO tasks (task_text, due_date) VALUES (?, ?)", (task_text, due_date))
     conn.commit()
     conn.close()
 
