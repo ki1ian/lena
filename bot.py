@@ -36,6 +36,8 @@ database.init_db()
 @bot.event
 async def on_ready():
     print(f"{bot.user.name} has connected to Discord!")
+    synced = await bot.tree.sync()
+    print(f"Synced {len(synced)} slash command(s).")
 
 
 # ====================================
@@ -46,6 +48,11 @@ async def on_ready():
 @bot.command()
 async def ping(ctx):
     await ctx.send("Pong!")
+
+# Slash command version of ping for testing
+@bot.tree.command(name="ping", description="Check if Lena is responsive")
+async def slash_ping(interaction: discord.Interaction):
+    await interaction.response.send_message("Pong!")
 
 
 # Append new tasks (capture all text into 1 argument using *)
