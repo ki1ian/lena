@@ -37,7 +37,7 @@ def add_task(task_text, due_date=None):
 def get_tasks():
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
-    cursor.execute("SELECT id, task_text FROM tasks ORDER BY id")
+    cursor.execute("SELECT id, task_text, due_date FROM tasks ORDER BY id")
     results = cursor.fetchall()
     conn.close()
     return results
@@ -48,7 +48,7 @@ def remove_task_by_position(position):
     tasks = get_tasks()
     if position < 1 or position > len(tasks):
         return None  # Invalid position
-    task_id, task_text = tasks[position - 1]
+    task_id, task_text, due_date = tasks[position - 1]
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
     cursor.execute("DELETE FROM tasks WHERE id = ?", (task_id,)) # Note: ? is a placeholder for the task_id variable, prevents SQL injection

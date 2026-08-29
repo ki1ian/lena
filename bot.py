@@ -52,8 +52,19 @@ async def ping(ctx):
 # Usage: !addtask <task_text>
 @bot.command()
 async def addtask(ctx, *, task_text):
-    database.add_task(task_text)
-    await ctx.send(f"Task added: {task_text}")
+    if " | " in task_text:
+        task_text, due_date = task_text.split(" | ", 1)
+        task_text = task_text.strip()
+        due_date = due_date.strip()
+    else:
+        due_date = None
+    
+    database.add_task(task_text, due_date)
+
+    if due_date:
+        await ctx.send(f"Task added: {task_text} (Due: {due_date})")
+    else:
+        await ctx.send(f"Task added: {task_text}")
 
 
 # Display all tasks currently stored
@@ -65,7 +76,13 @@ async def listtasks(ctx):
         await ctx.send("No tasks exist.")
         return
     # Loop through tasks, number them, combine into 1 message -> send to Discord
-    task_lines = [f"{i + 1}. {text}" for i, (task_id, text) in enumerate(tasks)]
+    task_lines = []
+    for i, (task_id, text, due_date) in enumerate(tasks):
+        if due_date:
+            task_lines.append(f"{i + 1}. {text} (Due: {due_date})")
+        else:
+            task_lines.append(f"{i + 1}. {text}")
+    # Send list of tasks as a single message
     await ctx.send("Tasks:\n" + "\n".join(task_lines))
 
 
