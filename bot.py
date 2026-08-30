@@ -1,5 +1,5 @@
 # Note: for command names to be typed by users, snake_case is avoided for convenience.
-# Command names are instead written in lowercase with no spaces, e.g. !addtask, !listtasks, etc.
+# Command names are instead written in lowercase with no spaces, e.g. /addtask, /listtasks, etc.
 
 
 # ====================================
@@ -109,25 +109,6 @@ async def removetask(interaction: discord.Interaction, task_number: int):
         return
     await interaction.response.send_message(f"Task removed: {removed}")
 
-
-# ====================================
-#            ERROR HANDLING
-# ====================================
-
-# Catch errors from any command and reply with a helpful message
-@bot.event
-async def on_command_error(ctx, error):
-    if isinstance(error, commands.MissingRequiredArgument):
-        await ctx.send(f"Missing required argument. Usage: `!{ctx.command} {ctx.command.signature}`")
-    elif isinstance(error, commands.BadArgument):
-        await ctx.send(f"Invalid argument. Usage: `!{ctx.command} {ctx.command.signature}`")
-    elif isinstance(error, commands.CommandNotFound):
-        pass # Ignore unrecognized commands to avoid spamming channel with error messages
-    else:
-        await ctx.send("An unexpected error occurred. Please try again later.")
-        # Log error to terminal for debugging
-        print(f"Unhandled error: {error}")
-        raise error 
     
 
 # Run bot with token
