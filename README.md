@@ -26,6 +26,7 @@ Lena is a personalized discord bot assistant for task management and reminders, 
 5. python bot.py
 
 ## Adding Lena to Your Server
+> Note: Lena is currently private and in development. Please check back later.
 1. Click this invite link: []
 2. Select the server you'd like to add Lena to (you'll need "Manage Server" permissions)
 3. Review the requested permissions and click "Authorize"
