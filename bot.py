@@ -52,40 +52,17 @@ async def on_ready():
 #              COMMANDS
 # ====================================
 
-# Ping command to test responsiveness (responds to !ping in server with "Pong!")
-@bot.command()
-async def ping(ctx):
-    await ctx.send("Pong!")
-
-# Slash command version of ping for testing
+# Ping command to test responsiveness (responds to /ping in server with "Pong!")
 @bot.tree.command(name="ping", description="Check if Lena is responsive")
-async def slash_ping(interaction: discord.Interaction):
+async def ping(interaction: discord.Interaction):
     await interaction.response.send_message("Pong!")
 
 
-# Append new tasks (capture all text into 1 argument using *)
-# Usage: !addtask <task_text>
-@bot.command()
-async def addtask(ctx, *, task_text):
-    if " | " in task_text:
-        task_text, due_date = task_text.split(" | ", 1)
-        task_text = task_text.strip()
-        due_date = due_date.strip()
-    else:
-        due_date = None
-    
-    database.add_task(task_text, due_date)
-
-    if due_date:
-        await ctx.send(f"Task added: {task_text} (Due: {due_date})")
-    else:
-        await ctx.send(f"Task added: {task_text}")
-
-
-# Slash command version of addtask for testing
+# Append new tasks given 2 fields: <task_text> and <due_date>
+# Usage: /addtask <task_text> <due_date>
 @bot.tree.command(name="addtask", description="Add a new task to your schedule")
 @discord.app_commands.describe(task_text="What is the task?", due_date="Optional due date (e.g. Friday, 6/18, Tomorrow)")
-async def slash_addtask(interaction: discord.Interaction, task_text: str, due_date: str = None):
+async def addtask(interaction: discord.Interaction, task_text: str, due_date: str = None):
     parsed_date = None
     if due_date:
         parsed = dateparser.parse(due_date, settings={'PREFER_DATES_FROM': 'future'})
@@ -102,28 +79,11 @@ async def slash_addtask(interaction: discord.Interaction, task_text: str, due_da
     else:
         await interaction.response.send_message(f"Task added: {task_text}")
     
-# Display all tasks currently stored
-# Usage: !listtasks
-@bot.command()
-async def listtasks(ctx):
-    tasks = database.get_tasks()
-    if not tasks:
-        await ctx.send("No tasks exist.")
-        return
-    # Loop through tasks, number them, combine into 1 message -> send to Discord
-    task_lines = []
-    for i, (task_id, text, due_date) in enumerate(tasks):
-        if due_date:
-            display_date = format_date_for_display(due_date)
-            task_lines.append(f"{i + 1}. {text} (Due: {display_date})")
-        else:
-            task_lines.append(f"{i + 1}. {text}")
-    # Send list of tasks as a single message
-    await ctx.send("Tasks:\n" + "\n".join(task_lines))
 
-# Slash command version of listtasks for testing
+# Display all tasks current stored in database
+# Usage: /listtasks
 @bot.tree.command(name="listtasks", description="List all active tasks in your schedule")
-async def slash_listtasks(interaction: discord.Interaction):
+async def listtasks(interaction: discord.Interaction):
     tasks = database.get_tasks()
     if not tasks:
         await interaction.response.send_message("No tasks exist.")
@@ -137,17 +97,9 @@ async def slash_listtasks(interaction: discord.Interaction):
             task_lines.append(f"{i + 1}. {text}")
     await interaction.response.send_message("Tasks:\n" + "\n".join(task_lines))
 
-# Remove a task from the list by its number (1-indexed)
-# Usage: !removetask <task_number>
-@bot.command()
-async def removetask(ctx, task_number: int): # type hint, ensure number given is an int
-    removed = database.remove_task_by_position(task_number)
-    if removed is None:
-        await ctx.send(f"Invalid task number: {task_number}. Use !listtasks to see valid task numbers.")
-        return
-    await ctx.send(f"Task removed: {removed}")
 
-# Slash command version of removetask for testing
+# Remove a task from the list given its assigned number
+# Usage: /removetask <task_number>
 @bot.tree.command(name="removetask", description="Remove a task from your schedule by its number")
 @discord.app_commands.describe(task_number="The task number shown in /listtasks")
 async def slash_removetask(interaction: discord.Interaction, task_number: int):
