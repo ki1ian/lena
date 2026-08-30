@@ -102,7 +102,7 @@ async def listtasks(interaction: discord.Interaction):
 # Usage: /removetask <task_number>
 @bot.tree.command(name="removetask", description="Remove a task from your schedule by its number")
 @discord.app_commands.describe(task_number="The task number shown in /listtasks")
-async def slash_removetask(interaction: discord.Interaction, task_number: int):
+async def removetask(interaction: discord.Interaction, task_number: int):
     removed = database.remove_task_by_position(task_number)
     if removed is None:
         await interaction.response.send_message(f"Invalid task number: {task_number}. Use /listtasks to see valid numbers.")
