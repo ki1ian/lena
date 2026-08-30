@@ -18,8 +18,15 @@ Lena is a personalized discord bot assistant for task management and reminders, 
 - Python, discord.py, SQLite
 
 ## Current Setup
+> Note: These steps allow you to run your own instance of the bot using the source code. They don't give access to the bot itself or its data.
 1. Clone the repo
 2. Create a virtual environment and activate
 3. pip install -r requirements.txt
 4. Create a .env file with DISCORD_TOKEN=your_token_here
 5. python bot.py
+
+## Adding Lena to Your Server
+1. Click this invite link: []
+2. Select the server you'd like to add Lena to (you'll need "Manage Server" permissions)
+3. Review the requested permissions and click "Authorize"
+4. Once added, type '/' in any channel Lena can see to view her available commands.
