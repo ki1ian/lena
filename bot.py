@@ -106,7 +106,34 @@ async def removetask(interaction: discord.Interaction, task_number: int):
         return
     await interaction.response.send_message(f"Task removed: {removed}")
 
-    
+
+# Show tasks due today, and flag any tasks that are overdue
+# Usage: /today
+@bot.tree.command(name="today", description="Show tasks that are due today (and anything marked as overdue)")
+async def today(interaction: discord.Interaction):
+    tasks = database.get_tasks()
+
+    due_today = [task for task in tasks if task.is_due_today()]
+    overdue = [task for task in tasks if task.is_overdue()]
+
+    if not due_today and not overdue:
+        await interaction.response.send_message("Nothing is due today or overdue. You're all caught up!")
+        return
+
+    lines = []
+
+    if overdue:
+        lines.append("**Overdue:**")
+        for task in overdue:
+            lines.append(f"- {task.text} (was due {task.format_due_date()})")
+        lines.append("") # spacing between overdue and due
+
+    if due_today:
+        lines.append("**Due today:**")
+        for task in due_today:
+            lines.append(f"- {task.text}")
+
+    await interaction.response.send_message("\n".join(lines))
 
 # Run bot with token
 bot.run(TOKEN)
