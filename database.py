@@ -1,5 +1,7 @@
 import sqlite3
 
+from task import Task
+
 
 DB_FILE = "tasks.db"
 
@@ -33,14 +35,15 @@ def add_task(task_text, due_date=None):
     conn.close()
 
 
-# Return list of (id, task_text) tuples from the database
+# Return list of Task objects, built from database rows
 def get_tasks():
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
     cursor.execute("SELECT id, task_text, due_date FROM tasks ORDER BY id")
     results = cursor.fetchall()
     conn.close()
-    return results
+
+    return [Task(task_id, text, due_date) for task_id, text, due_date in results]
 
 
 # Remove task given a numbered position from the database
@@ -48,11 +51,11 @@ def remove_task_by_position(position):
     tasks = get_tasks()
     if position < 1 or position > len(tasks):
         return None  # Invalid position
-    task_id, task_text, due_date = tasks[position - 1]
+    task = tasks[position - 1]
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
-    cursor.execute("DELETE FROM tasks WHERE id = ?", (task_id,)) # Note: ? is a placeholder for the task_id variable, prevents SQL injection
+    cursor.execute("DELETE FROM tasks WHERE id = ?", (task.id,)) # Note: ? is a placeholder for the task_id variable, prevents SQL injection
     conn.commit()
     conn.close()
 
-    return task_text # Return the removed task text for confirmation
+    return task.text # Return the removed task text for confirmation

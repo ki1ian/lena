@@ -10,10 +10,10 @@ import os
 import discord
 import database
 import dateparser
-from datetime import datetime
 
 from discord.ext import commands
 from dotenv import load_dotenv
+from task import Task
 
 # Pull bot token from .env file
 load_dotenv()
@@ -28,12 +28,6 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 
 # Initialize database
 database.init_db()
-
-# Helper to convert parsed date into readable format for users to help clarify what date was actually stored
-def format_date_for_display(date_str):
-    # Convert date from YYYY-MM-DD -> Friday, June 20, 2026
-    date_obj = datetime.strptime(date_str, "%Y-%m-%d")
-    return date_obj.strftime("%A, %B %d, %Y")
 
 
 # ====================================
@@ -65,6 +59,10 @@ async def ping(interaction: discord.Interaction):
 async def addtask(interaction: discord.Interaction, task_text: str, due_date: str = None):
     parsed_date = None
     if due_date:
+        # If a due date exists, Lena should be able to interpret user input with flexibility
+        # For example: whether they say "6/18", "June 18", "June 18th", it's stored as the same date.
+        # Additionally, we prefer dates from the future. So if the user inputs "Friday", and the current day
+        # is Friday, Lena interprets that as the upcoming friday, not "today".
         parsed = dateparser.parse(due_date, settings={'PREFER_DATES_FROM': 'future'})
         if parsed is None:
             await interaction.response.send_message(f"Could not parse the date '{due_date}'. Try something like 'Friday', '6/18', or 'Tomorrow'.")
@@ -74,7 +72,7 @@ async def addtask(interaction: discord.Interaction, task_text: str, due_date: st
     database.add_task(task_text, parsed_date)
 
     if parsed_date:
-        display_date = format_date_for_display(parsed_date)
+        display_date = Task.format_date_string(parsed_date)
         await interaction.response.send_message(f"Task added: {task_text} (Due: {display_date})")
     else:
         await interaction.response.send_message(f"Task added: {task_text}")
@@ -89,12 +87,11 @@ async def listtasks(interaction: discord.Interaction):
         await interaction.response.send_message("No tasks exist.")
         return
     task_lines = []
-    for i, (task_id, text, due_date) in enumerate(tasks):
-        if due_date:
-            display_date = format_date_for_display(due_date)
-            task_lines.append(f"{i + 1}. {text} (Due: {display_date})")
+    for i, task in enumerate(tasks):
+        if task.due_date:
+            task_lines.append(f"{i + 1}. {task.text} (Due: {task.format_due_date()})")
         else:
-            task_lines.append(f"{i + 1}. {text}")
+            task_lines.append(f"{i + 1}. {task.text}")
     await interaction.response.send_message("Tasks:\n" + "\n".join(task_lines))
 
 
