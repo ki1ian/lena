@@ -12,12 +12,15 @@ import database
 import dateparser
 
 from discord.ext import commands
+from discord.ext import tasks
+from datetime import time
 from dotenv import load_dotenv
 from task import Task
 
 # Pull bot token from .env file
 load_dotenv()
 TOKEN = os.getenv("DISCORD_TOKEN")
+CHANNEL_ID = int(os.getenv("DIGEST_CHANNEL_ID"))
 
 # Match permissions set in Discord Developer Portal
 intents = discord.Intents.default()
@@ -40,7 +43,45 @@ async def on_ready():
     print(f"{bot.user.name} has connected to Discord!")
     synced = await bot.tree.sync()
     print(f"Synced {len(synced)} slash command(s).")
+    daily_digest.start()
 
+
+# ====================================
+#           HELPER METHODS
+# ====================================
+
+# Build the due date message summary used by /today and daily digest
+def build_today_message():
+    tasks_list = database.get_tasks()
+    due_today = [task for task in tasks_list if task.is_due_today()]
+    overdue = [task for task in tasks_list if task.is_overdue()]
+
+    if not due_today and not overdue:
+        return "Nothing is due today and nothing is overdue. You're all caught up!"
+
+    lines = []
+    if overdue:
+        lines.append("**Overdue:**")
+        for task in overdue:
+            lines.append(f"- {task.text} (was due {task.format_due_date()})")
+        lines.append("")
+    if due_today:
+        lines.append("**Due today:**")
+        for task in due_today:
+            lines.append(f"- {task.text}")
+
+    return "\n".join(lines)
+
+# ====================================
+#          SCHEDULED TASKS
+# ====================================
+
+# Daily message sent at 9 AM
+@tasks.loop(time=time(hour=9, minute=0))
+async def daily_digest():
+    channel = bot.get_channel(CHANNEL_ID)
+    message = "Good morning! Here's your daily update:\n" + build_today_message()
+    await channel.send(message)
 
 # ====================================
 #              COMMANDS
@@ -111,29 +152,8 @@ async def removetask(interaction: discord.Interaction, task_number: int):
 # Usage: /today
 @bot.tree.command(name="today", description="Show tasks that are due today (and anything marked as overdue)")
 async def today(interaction: discord.Interaction):
-    tasks = database.get_tasks()
-
-    due_today = [task for task in tasks if task.is_due_today()]
-    overdue = [task for task in tasks if task.is_overdue()]
-
-    if not due_today and not overdue:
-        await interaction.response.send_message("Nothing is due today or overdue. You're all caught up!")
-        return
-
-    lines = []
-
-    if overdue:
-        lines.append("**Overdue:**")
-        for task in overdue:
-            lines.append(f"- {task.text} (was due {task.format_due_date()})")
-        lines.append("") # spacing between overdue and due
-
-    if due_today:
-        lines.append("**Due today:**")
-        for task in due_today:
-            lines.append(f"- {task.text}")
-
-    await interaction.response.send_message("\n".join(lines))
+    message = build_today_message()
+    await interaction.response.send_message(message)
 
 # Run bot with token
 bot.run(TOKEN)
