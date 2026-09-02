@@ -10,10 +10,11 @@ import os
 import discord
 import database
 import dateparser
+import calendar
 
 from discord.ext import commands
 from discord.ext import tasks
-from datetime import time
+from datetime import time, date, timedelta
 from dotenv import load_dotenv
 from task import Task
 
@@ -69,6 +70,28 @@ def build_today_message():
         lines.append("**Due today:**")
         for task in due_today:
             lines.append(f"- {task.text}")
+
+    return "\n".join(lines)
+
+# Build a summary grouping tasks by individual days between start_date and end_date (inclusive)
+def build_range_message(start_date, end_date, title):
+    tasks = database.get_tasks_due_between(start_date.isoformat(), end_date.isoformat())
+
+    if not tasks:
+        return f"Nothing due in {title.lower()}."
+
+    # Group tasks by day
+    grouped = {}
+    for task in tasks:
+        # Dictionary comprised of keys = due_date, values = list of tasks due on that date)
+        grouped.setdefault(task.due_date, []).append(task)
+
+    lines = [f"**{title}:**"]
+    for due_date in sorted(grouped.keys()):
+        display_date = Task.format_date_string(due_date)
+        lines.append(f"**{display_date}**")
+        for task in grouped[due_date]:
+            lines.append(f" - {task.text}")
 
     return "\n".join(lines)
 
@@ -153,6 +176,44 @@ async def removetask(interaction: discord.Interaction, task_number: int):
 @bot.tree.command(name="today", description="Show tasks that are due today (and anything marked as overdue)")
 async def today(interaction: discord.Interaction):
     message = build_today_message()
+    await interaction.response.send_message(message)
+
+# Show tasks due over the current calendar month (e.g. if used on September 15th, it will show tasks due between September 1st and September 30th)
+# Usage: /month
+@bot.tree.command(name="month", description="Show tasks due over the current calendar month")
+async def month(interaction: discord.Interaction):
+    today = date.today()
+    last_day = calendar.monthrange(today.year, today.month)[1]
+    end = date(today.year, today.month, last_day)
+    message = build_range_message(today, end, "This Month")
+    await interaction.response.send_message(message)
+
+# Show tasks due over the current week (e.g. if used on Wednesday, it will show tasks due between Monday and Sunday of the current week)
+# Usage: /week
+@bot.tree.command(name="week", description="Show tasks due over the current week")
+async def week(interaction: discord.Interaction):
+    today = date.today()
+    start = today - timedelta(days=today.weekday())
+    end = start + timedelta(days=6)
+    message = build_range_message(start, end, "This Week")
+    await interaction.response.send_message(message)
+
+# Show tasks due over the next 7 days (starting from today)
+# Usage: /nextweek
+@bot.tree.command(name="nextweek", description="Show tasks due over the next 7 days")
+async def nextweek(interaction: discord.Interaction):
+    today = date.today()
+    end = today + timedelta(days=6)
+    message = build_range_message(today, end, "Next 7 Days")
+    await interaction.response.send_message(message)
+
+# Show tasks due over the next 31 days (starting from today)
+# Usage: /nextmonth
+@bot.tree.command(name="nextmonth", description="Show tasks due over the next 31 days")
+async def nextmonth(interaction: discord.Interaction):
+    today = date.today()
+    end = today + timedelta(days=30)
+    message = build_range_message(today, end, "Next 31 Days")
     await interaction.response.send_message(message)
 
 # Run bot with token

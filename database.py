@@ -59,3 +59,15 @@ def remove_task_by_position(position):
     conn.close()
 
     return task.text # Return the removed task text for confirmation
+
+# Return Task objects with due_date between start_date and end_date (inclusive)
+def get_tasks_due_between(start_date, end_date):
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, task_text, due_date FROM tasks WHERE due_date BETWEEN ? and ? ORDER BY due_date",
+                   (start_date, end_date))
+
+    results = cursor.fetchall()
+    conn.close()
+
+    return [Task(task_id, text, due_date) for task_id, text, due_date in results]
