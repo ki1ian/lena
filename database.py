@@ -1,4 +1,5 @@
 import sqlite3
+from datetime import timedelta
 
 from task import Task
 
@@ -71,3 +72,26 @@ def get_tasks_due_between(start_date, end_date):
     conn.close()
 
     return [Task(task_id, text, due_date) for task_id, text, due_date in results]
+
+# Return a list of dicts (1 per day), each with date and list of tasks (can be empty)
+def build_calendar_data(start_date, end_date):
+    tasks = get_tasks_due_between(start_date.isoformat(), end_date.isoformat())
+
+    # Group tasks by due date
+    grouped = {}
+    for task in tasks:
+        grouped.setdefault(task.due_date, []).append(task)
+
+    # Build one entry per day in the range, even if no tasks exist
+    calendar_data = []
+    current_date = start_date
+    while current_date <= end_date:
+        day_tasks = grouped.get(current_date.isoformat(), [])
+        calendar_data.append({
+            "date": current_date,
+            "day_name": current_date.strftime("%A"),
+            "tasks": day_tasks
+        })
+        current_date += timedelta(days=1)
+
+    return calendar_data
