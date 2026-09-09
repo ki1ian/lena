@@ -11,6 +11,7 @@ import discord
 import database
 import dateparser
 import calendar
+import calendar_image
 
 from discord.ext import commands
 from discord.ext import tasks
@@ -215,6 +216,20 @@ async def nextmonth(interaction: discord.Interaction):
     end = today + timedelta(days=30)
     message = build_range_message(today, end, "Next 31 Days")
     await interaction.response.send_message(message)
+
+@bot.tree.command(name="weekimage", description="Show a visual calendar of tasks due over the current week")
+async def weekimage(interaction: discord.Interaction):
+    today = date.today()
+    start = today - timedelta(days=today.weekday())
+    end = start + timedelta(days=6)
+    data = database.build_calendar_data(start, end)
+
+    # Save the image to a temporary file
+    image = calendar_image.draw_week_grid(data)
+    image.save("week_temp.png")
+    
+    # Send the image file as a response to the user
+    await interaction.response.send_message(file=discord.File("week_temp.png"))
 
 # Run bot with token
 bot.run(TOKEN)
