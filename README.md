@@ -2,19 +2,23 @@
 
 Lena is a personalized discord bot assistant for task management and reminders, built with Python and discord.py.
 
-## Features (so far)
-- Add, list, and remove tasks via Disord commands
-- Optional due date assignment to tasks, parsed from flexible natural language (e.g. "Friday", "6/18", "14 days ago", "today")
-- '/today' command to view tasks due today and anything overdue
-- Automatic daily summary of due/overdue tasks posted to a dedicated channel each morning
-- Persistent storage using SQLite
-- Descriptive error handling for invalid inputs
-- Task data modeled as a 'Task' class (instance + static methods for  date logic)
+## Features
+- Add, list, and remove tasks via slash commands
+- Optional due dates, parsed from flexible natural language (e.g. "Friday", "6/18", "tomorrow", "in 3 days")
+- `/today` command to view tasks due today and anything overdue
+- `/week`, `/nextweek`, `/month`, `/nextmonth` calendar-range views
+- `/weekimage` — generates a visual weekly calendar image (Pillow), with color-coded days and overflow handling
+- Automatic daily digest posted to a dedicated channel each morning
+- Persistent storage using local SQLite
+- Task data modeled as a `Task` class (instance + static methods for date logic)
+- Friendly error handling for invalid input
 
 ## Planned
-- Expanded scheduling (weekly/monthly views, editable messages)
+- `/monthimage` — visual monthly calendar
 - Cloud deployment for 24/7 uptime
-- Potential future modules: fitness tracking, designated alerts
+- Web dashboard (calendar view, task management) — likely paired with deployment
+- Improved task removal (by name/reference instead of only list position)
+- Better handling for undated tasks so they don't get lost from calendar-style views
 
 ## Tech
 - Python, discord.py, SQLite, dateparser
