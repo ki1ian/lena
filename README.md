@@ -8,12 +8,16 @@ Lena is a personalized discord bot assistant for task management and reminders, 
 - `/today` command to view tasks due today and anything overdue
 - `/week`, `/nextweek`, `/month`, `/nextmonth` calendar-range views
 - `/weekimage` — generates a visual weekly calendar image (Pillow), with color-coded days and overflow handling
-- Automatic daily digest posted to a dedicated channel each morning
-- Persistent storage using local SQLite
+- Automatic daily digest posted to a dedicated channel each morning, including a personalized greeting and current weather
+- `/setname` and `/setlocation` to personalize the daily digest
+- `/testdigest` to manually trigger the digest for testing
+- Persistent storage using local SQLite, including a settings table for user preferences
 - Task data modeled as a `Task` class (instance + static methods for date logic)
 - Friendly error handling for invalid input
+- Confirmed working cross-platform (Windows and macOS)
 
 ## Planned
+- Expanded weather: today's high/low and forecast conditions (not just current temp), using OWM's forecast endpoint
 - `/monthimage` — visual monthly calendar
 - Cloud deployment for 24/7 uptime
 - Web dashboard (calendar view, task management) — likely paired with deployment
@@ -21,7 +25,7 @@ Lena is a personalized discord bot assistant for task management and reminders, 
 - Better handling for undated tasks so they don't get lost from calendar-style views
 
 ## Tech
-- Python, discord.py, SQLite, dateparser
+- Python, discord.py, SQLite, dateparser, Pillow, requests (OpenWeatherMap API)
 
 ## Current Setup
 > Note: These steps allow you to run your own instance of the bot using the source code. They don't give access to the bot itself or its data.
