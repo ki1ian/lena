@@ -19,7 +19,7 @@ Lena is a personalized discord bot assistant for task management and reminders, 
 ## Planned
 - `/monthimage` — visual monthly calendar
 - Cloud deployment for 24/7 uptime
-- Web dashboard (calendar view, task management) — likely paired with deployment
+- Web dashboard (calendar view, task management)
 - Improved task removal (by name/reference instead of only list position)
 - Better handling for undated tasks so they don't get lost from calendar-style views
 - Timezone-safe date handling throughout the rest of the bot (`Task.is_due_today`/`is_overdue`, `/today`, `/week`, `/month` currently rely on the server's local clock via `date.today()`, which will be incorrect once deployed to a UTC-defaulting cloud server — needs the same offset-aware approach used in the weather forecast fix, applied consistently)
