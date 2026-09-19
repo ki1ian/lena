@@ -104,9 +104,9 @@ def build_digest_message():
 
     greeting = f"Good morning, {name}! :)" if name else "Good morning! :)"
     if location:
-        weather_report = weather.get_weather(location)
-        if weather_report:
-            greeting += f" It's currently {weather_report} in {location}."
+        forecast = weather.get_forecast(location)
+        if forecast:
+            greeting += f" Today's forecast in {location}: a high of {forecast['high']}°F and a low of {forecast['low']}°F with {forecast['description']}."
 
     return greeting + "\n\n" + build_today_message()
 
@@ -192,7 +192,8 @@ async def today(interaction: discord.Interaction):
     message = build_today_message()
     await interaction.response.send_message(message)
 
-# Show tasks due over the current calendar month (e.g. if used on September 15th, it will show tasks due between September 1st and September 30th)
+# Show tasks due over the current calendar month
+# (e.g. if used on September 15th, it will show tasks due between September 1st and September 30th)
 # Usage: /month
 @bot.tree.command(name="month", description="Show tasks due over the current calendar month")
 async def month(interaction: discord.Interaction):
@@ -202,7 +203,8 @@ async def month(interaction: discord.Interaction):
     message = build_range_message(today, end, "This Month")
     await interaction.response.send_message(message)
 
-# Show tasks due over the current week (e.g. if used on Wednesday, it will show tasks due between Monday and Sunday of the current week)
+# Show tasks due over the current week
+# (e.g. if used on Wednesday, it will show tasks due between Monday and Sunday of the current week)
 # Usage: /week
 @bot.tree.command(name="week", description="Show tasks due over the current week")
 async def week(interaction: discord.Interaction):
@@ -230,6 +232,8 @@ async def nextmonth(interaction: discord.Interaction):
     message = build_range_message(today, end, "Next 31 Days")
     await interaction.response.send_message(message)
 
+# Show a visual calendar of tasks due over the current week
+# Usage: /weekimage
 @bot.tree.command(name="weekimage", description="Show a visual calendar of tasks due over the current week")
 async def weekimage(interaction: discord.Interaction):
     today = date.today()
@@ -245,6 +249,7 @@ async def weekimage(interaction: discord.Interaction):
     await interaction.response.send_message(file=discord.File("week_temp.png"))
 
 # Set the user's name for messaging purposes (e.g. "Good morning, <name>!")
+# Usage: /setname <name>
 @bot.tree.command(name="setname", description="Set your name for personalized messages")
 @discord.app_commands.describe(name="Your name/alias")
 async def setname(interaction: discord.Interaction, name: str):
@@ -252,6 +257,7 @@ async def setname(interaction: discord.Interaction, name: str):
     await interaction.response.send_message(f"Name set to: {name}")
 
 # Set the user's location for weather information
+# Usage: /setlocation <city_name>
 @bot.tree.command(name="setlocation", description="Set your location for weather in daily digest")
 @discord.app_commands.describe(location="City name (example: Seattle)")
 async def setlocation(interaction: discord.Interaction, location: str):
@@ -259,6 +265,7 @@ async def setlocation(interaction: discord.Interaction, location: str):
     await interaction.response.send_message(f"Location set to: {location}")
 
 # Test command to trigger digest message anytime
+# Usage: /testdigest
 @bot.tree.command(name="testdigest", description="Manually trigger the daily digest message")
 async def testdigest(interaction: discord.Interaction):
     channel = bot.get_channel(CHANNEL_ID)
