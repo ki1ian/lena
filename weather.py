@@ -1,7 +1,9 @@
 import os
 import requests
+from dotenv import load_dotenv
 
 # Private, free API key from OpenWeatherMap, load from .env file
+load_dotenv()
 OWM_API_KEY = os.getenv("OWM_API_KEY")
 
 # Return a short weather description given a location
