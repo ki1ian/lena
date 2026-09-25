@@ -95,3 +95,34 @@ def build_calendar_data(start_date, end_date):
         current_date += timedelta(days=1)
 
     return calendar_data
+
+# Create settings table if it doesn't already exist
+# Stores simple key-value pairs (e.g. "location" -> "Seattle"), separate from tasks
+def init_settings_table():
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS settings (
+            key TEXT PRIMARY KEY,
+            value TEXT
+        )
+    """)
+    conn.commit()
+    conn.close()
+
+# Save a setting to the settings table (insert or update)
+def set_setting(key, value):
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute("INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)", (key, value))
+    conn.commit()
+    conn.close()
+
+# Retrieve a setting's value by its key, or None if it hasn't been set
+def get_setting(key):
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute("SELECT value FROM settings WHERE key = ?", (key,))
+    result = cursor.fetchone()
+    conn.close()
+    return result[0] if result else None

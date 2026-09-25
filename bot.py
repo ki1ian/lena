@@ -12,6 +12,7 @@ import database
 import dateparser
 import calendar
 import calendar_image
+import weather
 
 from discord.ext import commands
 from discord.ext import tasks
@@ -33,6 +34,7 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 
 # Initialize database
 database.init_db()
+database.init_settings_table()
 
 
 # ====================================
@@ -96,6 +98,18 @@ def build_range_message(start_date, end_date, title):
 
     return "\n".join(lines)
 
+def build_digest_message():
+    location = database.get_setting("location")
+    name = database.get_setting("name")
+
+    greeting = f"Good morning, {name}! :)" if name else "Good morning! :)"
+    if location:
+        forecast = weather.get_forecast(location)
+        if forecast:
+            greeting += f" Today's forecast in {location}: a high of {forecast['high']}°F and a low of {forecast['low']}°F with {forecast['description']}."
+
+    return greeting + "\n\n" + build_today_message()
+
 # ====================================
 #          SCHEDULED TASKS
 # ====================================
@@ -104,8 +118,7 @@ def build_range_message(start_date, end_date, title):
 @tasks.loop(time=time(hour=9, minute=0))
 async def daily_digest():
     channel = bot.get_channel(CHANNEL_ID)
-    message = "Good morning! Here's your daily update:\n" + build_today_message()
-    await channel.send(message)
+    await channel.send(build_digest_message())
 
 # ====================================
 #              COMMANDS
@@ -179,7 +192,8 @@ async def today(interaction: discord.Interaction):
     message = build_today_message()
     await interaction.response.send_message(message)
 
-# Show tasks due over the current calendar month (e.g. if used on September 15th, it will show tasks due between September 1st and September 30th)
+# Show tasks due over the current calendar month
+# (e.g. if used on September 15th, it will show tasks due between September 1st and September 30th)
 # Usage: /month
 @bot.tree.command(name="month", description="Show tasks due over the current calendar month")
 async def month(interaction: discord.Interaction):
@@ -189,7 +203,8 @@ async def month(interaction: discord.Interaction):
     message = build_range_message(today, end, "This Month")
     await interaction.response.send_message(message)
 
-# Show tasks due over the current week (e.g. if used on Wednesday, it will show tasks due between Monday and Sunday of the current week)
+# Show tasks due over the current week
+# (e.g. if used on Wednesday, it will show tasks due between Monday and Sunday of the current week)
 # Usage: /week
 @bot.tree.command(name="week", description="Show tasks due over the current week")
 async def week(interaction: discord.Interaction):
@@ -217,6 +232,8 @@ async def nextmonth(interaction: discord.Interaction):
     message = build_range_message(today, end, "Next 31 Days")
     await interaction.response.send_message(message)
 
+# Show a visual calendar of tasks due over the current week
+# Usage: /weekimage
 @bot.tree.command(name="weekimage", description="Show a visual calendar of tasks due over the current week")
 async def weekimage(interaction: discord.Interaction):
     today = date.today()
@@ -230,6 +247,31 @@ async def weekimage(interaction: discord.Interaction):
     
     # Send the image file as a response to the user
     await interaction.response.send_message(file=discord.File("week_temp.png"))
+
+# Set the user's name for messaging purposes (e.g. "Good morning, <name>!")
+# Usage: /setname <name>
+@bot.tree.command(name="setname", description="Set your name for personalized messages")
+@discord.app_commands.describe(name="Your name/alias")
+async def setname(interaction: discord.Interaction, name: str):
+    database.set_setting("name", name)
+    await interaction.response.send_message(f"Name set to: {name}")
+
+# Set the user's location for weather information
+# Usage: /setlocation <city_name>
+@bot.tree.command(name="setlocation", description="Set your location for weather in daily digest")
+@discord.app_commands.describe(location="City name (example: Seattle)")
+async def setlocation(interaction: discord.Interaction, location: str):
+    database.set_setting("location", location)
+    await interaction.response.send_message(f"Location set to: {location}")
+
+# Test command to trigger digest message anytime
+# Usage: /testdigest
+@bot.tree.command(name="testdigest", description="Manually trigger the daily digest message")
+async def testdigest(interaction: discord.Interaction):
+    channel = bot.get_channel(CHANNEL_ID)
+    await channel.send(build_digest_message())
+    # Setting ephemeral to true means only user who used command can see the response
+    await interaction.response.send_message("Digest message sent.", ephemeral=True)
 
 # Run bot with token
 bot.run(TOKEN)
