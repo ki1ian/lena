@@ -4,6 +4,7 @@ Lena is a personalized discord bot assistant for task management and reminders, 
 
 ## Features
 - Add, list, and remove tasks via slash commands
+- `/removetask` supports searching by task text (not just position) with interactive buttons to disambiguate scenarios where multiple matches are found
 - Optional due dates, parsed from flexible natural language (e.g. "Friday", "6/18", "tomorrow", "in 3 days")
 - `/today` command to view tasks due today and anything overdue
 - `/week`, `/nextweek`, `/month`, `/nextmonth` calendar-range views
@@ -19,7 +20,6 @@ Lena is a personalized discord bot assistant for task management and reminders, 
 ## Planned
 - Cloud deployment for 24/7 uptime
 - Web dashboard (calendar view, task management)
-- Improved task removal (by name/reference instead of only list position)
 - Better handling for undated tasks so they don't get lost from calendar-style views
 - Customized notifications for non-task related things (tracking job listings, news, etc)
 
