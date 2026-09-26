@@ -7,7 +7,7 @@ Lena is a personalized discord bot assistant for task management and reminders, 
 - Optional due dates, parsed from flexible natural language (e.g. "Friday", "6/18", "tomorrow", "in 3 days")
 - `/today` command to view tasks due today and anything overdue
 - `/week`, `/nextweek`, `/month`, `/nextmonth` calendar-range views
-- `/weekimage` — generates a visual weekly calendar image (Pillow), with color-coded days and overflow handling
+- `/weekimage` and `/monthimage` — generates visual calendar images (Pillow), with color-coded days and overflow handling to display tasks and their due dates
 - Automatic daily digest posted to a dedicated channel each morning, including a personalized greeting and full weather forecast (high, low, conditions)
 - `/setname` and `/setlocation` to personalize the daily digest
 - `/testdigest` to manually trigger the digest for testing
@@ -17,13 +17,11 @@ Lena is a personalized discord bot assistant for task management and reminders, 
 - Confirmed working cross-platform (Windows and macOS)
 
 ## Planned
-- Expanded weather: today's high/low and forecast conditions (not just current temp), using OWM's forecast endpoint
-- `/monthimage` — visual monthly calendar
 - Cloud deployment for 24/7 uptime
 - Web dashboard (calendar view, task management)
 - Improved task removal (by name/reference instead of only list position)
 - Better handling for undated tasks so they don't get lost from calendar-style views
-- Timezone-safe date handling throughout the rest of the bot (`Task.is_due_today`/`is_overdue`, `/today`, `/week`, `/month` currently rely on the server's local clock via `date.today()`, which will be incorrect once deployed to a UTC-defaulting cloud server — needs the same offset-aware approach used in the weather forecast fix, applied consistently)
+- Customized notifications for non-task related things (tracking job listings, news, etc)
 
 ## Tech
 - Python, discord.py, SQLite, dateparser, Pillow, requests (OpenWeatherMap API)
