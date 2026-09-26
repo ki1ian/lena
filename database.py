@@ -46,20 +46,38 @@ def get_tasks():
 
     return [Task(task_id, text, due_date) for task_id, text, due_date in results]
 
-
-# Remove task given a numbered position from the database
-def remove_task_by_position(position):
-    tasks = get_tasks()
-    if position < 1 or position > len(tasks):
-        return None  # Invalid position
-    task = tasks[position - 1]
+# Return Task objects whose text contains the given search string (case-insensitive)
+def find_tasks_by_text(search_text):
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
-    cursor.execute("DELETE FROM tasks WHERE id = ?", (task.id,)) # Note: ? is a placeholder for the task_id variable, prevents SQL injection
+    # LIKE %{}% = "contains", not "starts with"
+    # LOWER() on both sides ensures match is case-insensitive
+    cursor.execute(
+        "SELECT id, task_text, due_date FROM tasks WHERE LOWER(task_text) LIKE ?",
+        (f"%{search_text.lower()}%",)
+    )
+    results = cursor.fetchall()
+    conn.close()
+
+    return [Task(task_id, text, due_date) for task_id, text, due_date in results]
+
+# Remove task by its specific database ID (used when multiple tasks share the same search string)
+def remove_task_by_id(task_id):
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute("SELECT task_text FROM tasks WHERE id = ?", (task_id,))
+    result = cursor.fetchone()
+
+    if result is None:
+        conn.close()
+        return None
+
+    task_text = result[0]
+    cursor.execute("DELETE FROM tasks WHERE id = ?", (task_id,))
     conn.commit()
     conn.close()
 
-    return task.text # Return the removed task text for confirmation
+    return task_text
 
 # Return Task objects with due_date between start_date and end_date (inclusive)
 def get_tasks_due_between(start_date, end_date):
