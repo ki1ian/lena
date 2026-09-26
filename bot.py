@@ -13,6 +13,7 @@ import dateparser
 import calendar
 import calendar_image
 import weather
+import ui_components
 
 from discord.ext import commands
 from discord.ext import tasks
@@ -122,6 +123,7 @@ def build_digest_message():
 
     return greeting + "\n\n" + build_today_message()
 
+
 # ====================================
 #          SCHEDULED TASKS
 # ====================================
@@ -184,19 +186,42 @@ async def listtasks(interaction: discord.Interaction):
             task_lines.append(f"{i + 1}. {task.text}")
     await interaction.response.send_message("Tasks:\n" + "\n".join(task_lines))
 
-
-# Remove a task from the list given its assigned number
+# Remove a task from the list given its assigned number, or searching for given text
 # Usage: /removetask <task_number>
 @bot.tree.command(name="removetask", description="Remove a task from your schedule by its number")
-@discord.app_commands.describe(task_number="The task number shown in /listtasks")
-async def removetask(interaction: discord.Interaction, task_number: int):
-    removed = database.remove_task_by_position(task_number)
-    if removed is None:
-        await interaction.response.send_message(f"Invalid task number: {task_number}. Use /listtasks to see valid numbers.")
+@discord.app_commands.describe(search="The task text to search for, or an exact ID from database")
+async def removetask(interaction: discord.Interaction, search: str):
+    # Guard for empty search string given (I don't want 50 buttons to pop up on my screen)
+    search = search.strip()
+    if not search:
+        await interaction.response.send_message("Empty string was given, please provide task text")
         return
-    await interaction.response.send_message(f"Task removed: {removed}")
+    
+    # If input is a number, treat it as exact ID
+    if search.isdigit():
+        removed = database.remove_task_by_id(int(search))
+        if removed is None:
+            await interaction.response.send_message(f"No task found with '{search}'.")
+        else:
+            await interaction.response.send_message(f"Task removed: {removed}")
+        return
 
+    matches = database.find_tasks_by_text(search)
 
+    if not matches:
+        await interaction.response.send_message(f"No tasks found matching '{search}'.")
+        return
+
+    if len(matches) == 1:
+        removed = database.remove_task_by_id(matches[0].id)
+        await interaction.response.send_message(f"Task removed: {removed}")
+        return
+
+    # If multiple matches exist, display and prompt user to specify
+    view = ui_components.RemoveTaskView(matches)
+    await interaction.response.send_message(f"Multiple tasks match '{search}'. Choose one to remove:", view=view)
+    view.message = await interaction.original_response()
+    
 # Show tasks due today, and flag any tasks that are overdue
 # Usage: /today
 @bot.tree.command(name="today", description="Show tasks that are due today (and anything marked as overdue)")
