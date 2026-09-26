@@ -16,9 +16,14 @@ import weather
 
 from discord.ext import commands
 from discord.ext import tasks
-from datetime import time, date, timedelta
+from datetime import time, date, datetime, timedelta
 from dotenv import load_dotenv
 from task import Task
+from zoneinfo import ZoneInfo
+
+# Currently set to PST for personal use
+# NOTE: IF YOU DOWNLOADED THIS CODE FOR PERSONAL USE, CHANGE TO YOUR LOCAL TIMEZONE HERE
+LOCAL_TZ = ZoneInfo("America/Los_Angeles")
 
 # Pull bot token from .env file
 load_dotenv()
@@ -54,11 +59,18 @@ async def on_ready():
 #           HELPER METHODS
 # ====================================
 
+# Return today's date in the designated, local timezone rather than the eventual host server's own local time
+# Goal here is consistency after deployment. Avoid defaulting to UTC or timezones that are unintended.
+# NOTE: If this bot is changed in the future to work for various users, date configuration should be tied to Discord account
+def get_local_today():
+    return datetime.now(LOCAL_TZ).date()
+
 # Build the due date message summary used by /today and daily digest
 def build_today_message():
+    today = get_local_today()
     tasks_list = database.get_tasks()
-    due_today = [task for task in tasks_list if task.is_due_today()]
-    overdue = [task for task in tasks_list if task.is_overdue()]
+    due_today = [task for task in tasks_list if task.is_due_today(today)]
+    overdue = [task for task in tasks_list if task.is_overdue(today)]
 
     if not due_today and not overdue:
         return "Nothing is due today and nothing is overdue. You're all caught up!"
@@ -197,7 +209,7 @@ async def today(interaction: discord.Interaction):
 # Usage: /month
 @bot.tree.command(name="month", description="Show tasks due over the current calendar month")
 async def month(interaction: discord.Interaction):
-    today = date.today()
+    today = get_local_today()
     last_day = calendar.monthrange(today.year, today.month)[1]
     end = date(today.year, today.month, last_day)
     message = build_range_message(today, end, "This Month")
@@ -208,7 +220,7 @@ async def month(interaction: discord.Interaction):
 # Usage: /week
 @bot.tree.command(name="week", description="Show tasks due over the current week")
 async def week(interaction: discord.Interaction):
-    today = date.today()
+    today = get_local_today()
     start = today - timedelta(days=today.weekday())
     end = start + timedelta(days=6)
     message = build_range_message(start, end, "This Week")
@@ -218,7 +230,7 @@ async def week(interaction: discord.Interaction):
 # Usage: /nextweek
 @bot.tree.command(name="nextweek", description="Show tasks due over the next 7 days")
 async def nextweek(interaction: discord.Interaction):
-    today = date.today()
+    today = get_local_today()
     end = today + timedelta(days=6)
     message = build_range_message(today, end, "Next 7 Days")
     await interaction.response.send_message(message)
@@ -227,7 +239,7 @@ async def nextweek(interaction: discord.Interaction):
 # Usage: /nextmonth
 @bot.tree.command(name="nextmonth", description="Show tasks due over the next 31 days")
 async def nextmonth(interaction: discord.Interaction):
-    today = date.today()
+    today = get_local_today()
     end = today + timedelta(days=30)
     message = build_range_message(today, end, "Next 31 Days")
     await interaction.response.send_message(message)
@@ -236,7 +248,7 @@ async def nextmonth(interaction: discord.Interaction):
 # Usage: /weekimage
 @bot.tree.command(name="weekimage", description="Show a visual calendar of tasks due over the current week")
 async def weekimage(interaction: discord.Interaction):
-    today = date.today()
+    today = get_local_today()
     start = today - timedelta(days=today.weekday())
     end = start + timedelta(days=6)
     data = database.build_calendar_data(start, end)

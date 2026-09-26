@@ -7,19 +7,19 @@ class Task:
         self.due_date = due_date # Store in YYYY-MM-DD format, or None (if not given)
 
     # Return true if the task is overdue, false otherwise
-    def is_overdue(self):
+    def is_overdue(self, today):
         # If no due date, task is never overdue
         if self.due_date is None:
             return False
         due = datetime.strptime(self.due_date, "%Y-%m-%d").date()
-        return due < date.today()
+        return due < today
 
-    # Return true if task is due today, false otherwise
-    def is_due_today(self):
+    # Return true if task is due on given "today" date
+    def is_due_today(self, today):
         if self.due_date is None:
             return False
         due = datetime.strptime(self.due_date, "%Y-%m-%d").date()
-        return due == date.today()
+        return due == today
 
     # User-friendly version of due date
     def format_due_date(self):
