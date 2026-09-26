@@ -7,7 +7,7 @@ Lena is a personalized discord bot assistant for task management and reminders, 
 - Optional due dates, parsed from flexible natural language (e.g. "Friday", "6/18", "tomorrow", "in 3 days")
 - `/today` command to view tasks due today and anything overdue
 - `/week`, `/nextweek`, `/month`, `/nextmonth` calendar-range views
-- `/weekimage` and `/monthimage` — generates visual calendar images (Pillow), with color-coded days and overflow handling to display tasks and their due dates
+- `/weekimage` and `/monthimage` generate visual calendar images (Pillow), with color-coded days and overflow handling to display tasks and their due dates
 - Automatic daily digest posted to a dedicated channel each morning, including a personalized greeting and full weather forecast (high, low, conditions)
 - `/setname` and `/setlocation` to personalize the daily digest
 - `/testdigest` to manually trigger the digest for testing
