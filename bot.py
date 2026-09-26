@@ -260,6 +260,22 @@ async def weekimage(interaction: discord.Interaction):
     # Send the image file as a response to the user
     await interaction.response.send_message(file=discord.File("week_temp.png"))
 
+# Show a visual calendar of tasks due over the current month
+# Usage: /monthimage
+@bot.tree.command(name="monthimage", description="Show a visual calendar of tasks due over the current month")
+async def monthimage(interaction: discord.Interaction):
+    today = get_local_today()
+    last_day = calendar.monthrange(today.year, today.month)[1]
+    start = date(today.year, today.month, 1)
+    end = date(today.year, today.month, last_day)
+    data = database.build_calendar_data(start, end)
+
+    month_label = today.strftime("%B %Y")
+    image = calendar_image.draw_month_grid(data, month_label)
+    image.save("month_temp.png")
+
+    await interaction.response.send_message(file=discord.File("month_temp.png"))
+
 # Set the user's name for messaging purposes (e.g. "Good morning, <name>!")
 # Usage: /setname <name>
 @bot.tree.command(name="setname", description="Set your name for personalized messages")
