@@ -15,7 +15,7 @@ Lena is a personalized discord bot assistant for task management and reminders, 
 - Persistent storage using local SQLite, including a settings table for user preferences
 - Task data modeled as a `Task` class (instance + static methods for date logic)
 - Friendly error handling for invalid input
-- Confirmed working cross-platform (Windows and macOS)
+- Confirmed working cross-platform (Windows, macOS, Linux)
 - Deployed on an Oracle Cloud VM (Ubuntu, ARM/Ampere), managed via a systemd service for automatic startup and crash recovery - runs continuously, independent of any local machine
 
 ## Planned
