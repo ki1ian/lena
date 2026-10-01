@@ -129,7 +129,7 @@ def build_digest_message():
 # ====================================
 
 # Daily message sent at 9 AM
-@tasks.loop(time=time(hour=9, minute=0))
+@tasks.loop(time=time(hour=9, minute=0, tzinfo=LOCAL_TZ))
 async def daily_digest():
     channel = bot.get_channel(CHANNEL_ID)
     await channel.send(build_digest_message())
@@ -151,11 +151,17 @@ async def ping(interaction: discord.Interaction):
 async def addtask(interaction: discord.Interaction, task_text: str, due_date: str = None):
     parsed_date = None
     if due_date:
+        # Use LOCAL_TZ as the reference point by default
         # If a due date exists, Lena should be able to interpret user input with flexibility
-        # For example: whether they say "6/18", "June 18", "June 18th", it's stored as the same date.
-        # Additionally, we prefer dates from the future. So if the user inputs "Friday", and the current day
-        # is Friday, Lena interprets that as the upcoming friday, not "today".
-        parsed = dateparser.parse(due_date, settings={'PREFER_DATES_FROM': 'future'})
+            # For example: whether they say "6/18", "June 18", "June 18th", it's stored as the same date.
+            # Additionally, we prefer dates from the future. So if the user inputs "Friday", and the current day
+            # is Friday, Lena interprets that as the upcoming friday, not "today".
+        local_now = datetime.now(LOCAL_TZ).replace(tzinfo=None)
+        parsed = dateparser.parse(due_date, settings={
+            'PREFER_DATES_FROM': 'future',
+            'RELATIVE_BASE': local_now
+        })
+
         if parsed is None:
             await interaction.response.send_message(f"Could not parse the date '{due_date}'. Try something like 'Friday', '6/18', or 'Tomorrow'.")
             return
